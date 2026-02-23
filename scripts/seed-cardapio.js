@@ -11,40 +11,13 @@ const pool = new pg.Pool({
 async function seed() {
   const client = await pool.connect();
   try {
-    console.log("[v0] Criando tabelas de cardapio...");
+    console.log("[v0] Inserindo dados nas tabelas de cardapio...");
 
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS clientes (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        nome TEXT NOT NULL,
-        slug TEXT UNIQUE NOT NULL,
-        logo_url TEXT,
-        telefone TEXT,
-        endereco TEXT,
-        ativo BOOLEAN DEFAULT true,
-        created_at TIMESTAMPTZ DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS cardapio_categorias (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        cliente_id UUID REFERENCES clientes(id) ON DELETE CASCADE,
-        nome TEXT NOT NULL,
-        ordem INT DEFAULT 0,
-        created_at TIMESTAMPTZ DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS cardapio_produtos (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        categoria_id UUID REFERENCES cardapio_categorias(id) ON DELETE CASCADE,
-        nome TEXT NOT NULL,
-        descricao TEXT,
-        preco DECIMAL(10,2) NOT NULL DEFAULT 0,
-        imagem_url TEXT,
-        disponivel BOOLEAN DEFAULT true,
-        created_at TIMESTAMPTZ DEFAULT now()
-      );
-    `);
-    console.log("[v0] Tabelas criadas com sucesso");
+    // Limpar dados antigos
+    await client.query(`DELETE FROM cardapio_produtos`);
+    await client.query(`DELETE FROM cardapio_categorias`);
+    await client.query(`DELETE FROM clientes`);
+    console.log("[v0] Tabelas limpas");
 
     // Inserir clientes
     const c1 = await client.query(`
