@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Download,
   Store,
+  Database,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/dashboard/contatos", label: "Contatos", icon: Mail },
   { href: "/dashboard/feedbacks", label: "Feedbacks", icon: MessageSquare },
   { href: "/dashboard/clientes", label: "Clientes", icon: Store },
+  { href: "/dashboard/databases", label: "Bancos de Dados", icon: Database },
   { href: "/dashboard/download", label: "Download", icon: Download },
 ]
 
