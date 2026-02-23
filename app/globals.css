@@ -4,169 +4,55 @@
 
 @layer base {
   :root {
-    --background: 230 20% 7%;
-    --foreground: 220 14% 90%;
-    --card: 230 18% 10%;
-    --card-foreground: 220 14% 90%;
-    --popover: 230 18% 10%;
-    --popover-foreground: 220 14% 90%;
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
     --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 230 16% 14%;
-    --secondary-foreground: 220 14% 90%;
-    --muted: 230 14% 16%;
-    --muted-foreground: 220 10% 50%;
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 230 14% 16%;
-    --input: 230 16% 14%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217 33% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
     --ring: 262 83% 58%;
     --radius: 0.75rem;
   }
+}
 
-  .dark {
-    --background: 230 20% 7%;
-    --foreground: 220 14% 90%;
-    --card: 230 18% 10%;
-    --card-foreground: 220 14% 90%;
-    --popover: 230 18% 10%;
-    --popover-foreground: 220 14% 90%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 230 16% 14%;
-    --secondary-foreground: 220 14% 90%;
-    --muted: 230 14% 16%;
-    --muted-foreground: 220 10% 50%;
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 230 14% 16%;
-    --input: 230 16% 14%;
-    --ring: 262 83% 58%;
-  }
-
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
 }
 
-@layer components {
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  @keyframes slideInLeft {
-    from {
-      opacity: 0;
-      transform: translateX(-12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-
-  @keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.15); }
-    50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.3); }
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
-  }
-
-  .animate-fade-in-up {
-    animation: fadeInUp 0.5s ease-out backwards;
-  }
-
-  .animate-slide-in-left {
-    animation: slideInLeft 0.4s ease-out backwards;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.4s ease-out backwards;
-  }
-
-  .animate-float {
-    animation: float 4s ease-in-out infinite;
-  }
-
-  .animate-gradient-shift {
-    background-size: 200% 200%;
-    animation: gradientShift 6s ease infinite;
-  }
-
-  .animate-pulse-glow {
-    animation: pulseGlow 3s ease-in-out infinite;
-  }
-
-  .animate-shimmer {
-    background-size: 200% 100%;
-    animation: shimmer 2s linear infinite;
-  }
-
-  .stagger-1 { animation-delay: 50ms; }
-  .stagger-2 { animation-delay: 100ms; }
-  .stagger-3 { animation-delay: 150ms; }
-  .stagger-4 { animation-delay: 200ms; }
-  .stagger-5 { animation-delay: 250ms; }
-  .stagger-6 { animation-delay: 300ms; }
-
+@layer utilities {
   .glass-card {
-    background: linear-gradient(135deg, hsl(230 18% 12% / 0.8), hsl(230 18% 8% / 0.6));
-    backdrop-filter: blur(12px);
-    border: 1px solid hsl(230 14% 18%);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl;
   }
+}
 
-  .glass-card:hover {
-    border-color: hsl(262 83% 58% / 0.3);
-    box-shadow: 0 8px 32px hsl(262 83% 58% / 0.08);
-    transform: translateY(-2px);
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
 }
