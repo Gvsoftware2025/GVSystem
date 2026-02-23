@@ -10,6 +10,7 @@ import {
   Mail,
   MessageSquare,
   Download,
+  Store,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/dashboard/sobre", label: "Sobre", icon: User },
   { href: "/dashboard/contatos", label: "Contatos", icon: Mail },
   { href: "/dashboard/feedbacks", label: "Feedbacks", icon: MessageSquare },
+  { href: "/dashboard/clientes", label: "Clientes", icon: Store },
   { href: "/dashboard/download", label: "Download", icon: Download },
 ]
 
@@ -48,7 +50,7 @@ export function Sidebar() {
         </p>
         {navItems.map((item, index) => {
           const Icon = item.icon
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"))
           return (
             <Link
               key={item.href}

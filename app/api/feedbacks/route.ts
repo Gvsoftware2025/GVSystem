@@ -4,7 +4,7 @@ import pool from "@/lib/db"
 export async function GET() {
   try {
     const { rows } = await pool.query(
-      "SELECT * FROM portfolio_contacts ORDER BY created_at DESC"
+      "SELECT * FROM portfolio_feedbacks ORDER BY created_at DESC"
     )
     return NextResponse.json(rows)
   } catch (error: any) {
@@ -14,8 +14,8 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const { id, is_read } = await request.json()
-    await pool.query("UPDATE portfolio_contacts SET is_read = $1 WHERE id = $2", [is_read, id])
+    const { id, visivel } = await request.json()
+    await pool.query("UPDATE portfolio_feedbacks SET visivel = $1 WHERE id = $2", [visivel, id])
     return NextResponse.json({ success: true })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -25,7 +25,7 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json()
-    await pool.query("DELETE FROM portfolio_contacts WHERE id = $1", [id])
+    await pool.query("DELETE FROM portfolio_feedbacks WHERE id = $1", [id])
     return NextResponse.json({ success: true })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
