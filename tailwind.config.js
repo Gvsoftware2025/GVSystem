@@ -1,5 +1,4 @@
 /** @type {import('tailwindcss').Config} */
-// GV Software Admin Panel
 module.exports = {
   darkMode: "class",
   content: [
