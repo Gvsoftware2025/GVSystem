@@ -67,15 +67,17 @@ export async function POST(request: Request) {
       await newDbPool.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO gvsoftware`)
       await newDbPool.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO gvsoftware`)
 
-      // Create tables
+      // Create tables one by one (pg doesn't support multiple statements in one query)
       await newDbPool.query(`
         CREATE TABLE categorias (
           id SERIAL PRIMARY KEY,
           nome VARCHAR(255) NOT NULL,
           ordem INTEGER DEFAULT 0,
           ativo BOOLEAN DEFAULT true
-        );
+        )
+      `)
 
+      await newDbPool.query(`
         CREATE TABLE produtos (
           id SERIAL PRIMARY KEY,
           categoria_id INTEGER REFERENCES categorias(id) ON DELETE CASCADE,
@@ -86,8 +88,10 @@ export async function POST(request: Request) {
           disponivel BOOLEAN DEFAULT true,
           ordem INTEGER DEFAULT 0,
           criado_em TIMESTAMP DEFAULT NOW()
-        );
+        )
+      `)
 
+      await newDbPool.query(`
         CREATE TABLE pedidos (
           id SERIAL PRIMARY KEY,
           mesa VARCHAR(20),
@@ -95,20 +99,21 @@ export async function POST(request: Request) {
           status VARCHAR(50) DEFAULT 'pendente',
           total DECIMAL(10,2),
           criado_em TIMESTAMP DEFAULT NOW()
-        );
+        )
+      `)
 
+      await newDbPool.query(`
         CREATE TABLE itens_pedido (
           id SERIAL PRIMARY KEY,
           pedido_id INTEGER REFERENCES pedidos(id) ON DELETE CASCADE,
           produto_id INTEGER REFERENCES produtos(id),
           quantidade INTEGER NOT NULL,
           preco_unitario DECIMAL(10,2) NOT NULL
-        );
-
-        -- Grant on created tables
-        GRANT ALL ON ALL TABLES IN SCHEMA public TO gvsoftware;
-        GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO gvsoftware;
+        )
       `)
+
+      await newDbPool.query(`GRANT ALL ON ALL TABLES IN SCHEMA public TO gvsoftware`)
+      await newDbPool.query(`GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO gvsoftware`)
     } finally {
       await newDbPool.end()
     }
