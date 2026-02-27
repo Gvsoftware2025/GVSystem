@@ -441,13 +441,8 @@ export default function DatabasesPage() {
                     <Input value={dbName} onChange={(e) => { setDbName(e.target.value); setError("") }} placeholder="cardapio_pizzaria" className="bg-secondary border-border font-mono" />
                     {dbName && <p className="text-[11px] text-muted-foreground">Sera criado como: <span className="font-mono text-foreground">{sanitizedName || "..."}</span></p>}
                   </div>
-                  <div className="bg-secondary/50 rounded-lg p-3 space-y-1.5">
-                    <p className="text-xs font-medium text-foreground flex items-center gap-1.5"><LayoutList className="w-3.5 h-3.5 text-cyan-400" /> Tabelas criadas automaticamente:</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {["categorias", "produtos", "pedidos", "itens_pedido"].map((t) => (
-                        <span key={t} className="text-[11px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-mono">{t}</span>
-                      ))}
-                    </div>
+                  <div className="bg-secondary/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground">O banco sera criado vazio. Use o SQL Editor para criar suas tabelas.</p>
                   </div>
                   {error && (
                     <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2.5 flex items-center gap-2 text-xs text-destructive">
