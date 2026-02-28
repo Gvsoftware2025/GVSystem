@@ -26,15 +26,19 @@ export async function GET(
       ORDER BY ordinal_position
     `, [table])
 
-    // Get first 100 rows
-    const dataResult = await dbPool.query(`SELECT * FROM "${table}" LIMIT 100`)
+    // Get total count
+    const countResult = await dbPool.query(`SELECT COUNT(*)::int as total FROM "${table}"`)
+    const totalRows = countResult.rows[0]?.total || 0
+
+    // Get rows (limit 500)
+    const dataResult = await dbPool.query(`SELECT * FROM "${table}" ORDER BY id ASC LIMIT 500`)
 
     return NextResponse.json({
       table,
       columns: colsResult.rows,
       rows: dataResult.rows,
       fields: dataResult.fields?.map((f) => f.name) || [],
-      totalRows: dataResult.rowCount,
+      totalRows,
     })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })

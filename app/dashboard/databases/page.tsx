@@ -128,60 +128,93 @@ export default function DatabasesPage() {
 
   const sanitizedName = dbName.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "")
 
+  // Check if table has image-like data (products view)
+  const hasImageColumn = tableViewData?.fields?.some((f) => ["imagem", "image", "image_url", "imagem_url", "foto", "foto_url", "logo", "logo_url", "thumbnail"].includes(f.toLowerCase()))
+  const imageField = tableViewData?.fields?.find((f) => ["imagem", "image", "image_url", "imagem_url", "foto", "foto_url", "logo", "logo_url", "thumbnail"].includes(f.toLowerCase()))
+  const nameField = tableViewData?.fields?.find((f) => ["nome", "name", "titulo", "title"].includes(f.toLowerCase()))
+  const priceField = tableViewData?.fields?.find((f) => ["preco", "price", "valor"].includes(f.toLowerCase()))
+  const descField = tableViewData?.fields?.find((f) => ["descricao", "description", "desc"].includes(f.toLowerCase()))
+
   // Table Viewer
   if (viewingTable) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-3 animate-fade-in-up">
-          <Button variant="ghost" size="icon" onClick={() => { setViewingTable(null); setTableViewData(null) }} className="h-9 w-9 shrink-0">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">{viewingTable.table}</h1>
-            <p className="text-xs text-muted-foreground font-mono">{viewingTable.db}</p>
+        <div className="flex items-center justify-between animate-fade-in-up">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => { setViewingTable(null); setTableViewData(null) }} className="h-9 w-9 shrink-0">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">{viewingTable.table}</h1>
+              <p className="text-xs text-muted-foreground font-mono">{viewingTable.db} - {tableViewData?.totalRows || 0} registros</p>
+            </div>
           </div>
+          <Button size="sm" variant="outline" onClick={() => { setSqlDb(viewingTable.db); setSqlQuery(`SELECT * FROM "${viewingTable.table}";`); setViewingTable(null); setTableViewData(null) }} className="h-8 text-xs">
+            <Terminal className="w-3 h-3 mr-1.5" /> SQL Editor
+          </Button>
         </div>
         {loadingTableView ? (
           <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-primary/30 rounded-full border-t-primary animate-spin" /></div>
         ) : tableViewData ? (
-          <div className="space-y-4 animate-fade-in-up stagger-1">
-            {/* Columns Info */}
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-3"><CardTitle className="text-sm text-muted-foreground">Colunas ({tableViewData.columns.length})</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid gap-1.5">
-                  {tableViewData.columns.map((col: any) => (
-                    <div key={col.column_name} className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/50 text-sm">
-                      <span className="font-mono text-foreground">{col.column_name}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-cyan-400 font-mono">{col.data_type}</span>
-                        {col.is_nullable === "NO" && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">NOT NULL</span>}
+          <div className="animate-fade-in-up stagger-1">
+            {tableViewData.rows.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-secondary flex items-center justify-center"><Table2 className="w-7 h-7 text-muted-foreground" /></div>
+                <h3 className="text-base font-medium text-foreground mb-1">Tabela vazia</h3>
+                <p className="text-sm text-muted-foreground">Use o SQL Editor para inserir dados</p>
+              </div>
+            ) : hasImageColumn && nameField ? (
+              /* Product Cards View */
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {tableViewData.rows.map((row, i) => {
+                  const imgSrc = row[imageField!]
+                  const isBase64 = imgSrc && (String(imgSrc).startsWith("data:") || String(imgSrc).length > 200)
+                  const isUrl = imgSrc && (String(imgSrc).startsWith("http") || String(imgSrc).startsWith("/"))
+                  return (
+                    <div key={i} className="glass-card rounded-xl overflow-hidden group hover:ring-1 hover:ring-primary/30 transition-all">
+                      <div className="aspect-square bg-secondary/50 relative overflow-hidden">
+                        {imgSrc && (isBase64 || isUrl) ? (
+                          <img
+                            src={String(imgSrc)}
+                            alt={row[nameField] || "Produto"}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            crossOrigin="anonymous"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-3xl text-muted-foreground/30">?</span>
+                          </div>
+                        )}
+                        {row.disponivel === false && (
+                          <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+                            <span className="text-xs font-medium text-destructive bg-destructive/10 px-2 py-1 rounded">Indisponivel</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3 space-y-1">
+                        <h3 className="text-xs font-semibold text-foreground line-clamp-2 leading-snug">{row[nameField]}</h3>
+                        {descField && row[descField] && (
+                          <p className="text-[10px] text-muted-foreground line-clamp-2">{row[descField]}</p>
+                        )}
+                        {priceField && row[priceField] != null && (
+                          <p className="text-sm font-bold text-emerald-400">R$ {Number(row[priceField]).toFixed(2)}</p>
+                        )}
+                        {row.id && <p className="text-[9px] text-muted-foreground/50 font-mono">ID: {row.id}</p>}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            {/* Data */}
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm text-muted-foreground">Dados ({tableViewData.totalRows} registros)</CardTitle>
-                  <Button size="sm" variant="outline" onClick={() => { setSqlDb(viewingTable.db); setSqlQuery(`SELECT * FROM "${viewingTable.table}";`); setViewingTable(null); setTableViewData(null) }} className="h-7 text-xs">
-                    <Terminal className="w-3 h-3 mr-1.5" /> Abrir no SQL Editor
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {tableViewData.rows.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Tabela vazia</p>
-                ) : (
-                  <div className="overflow-x-auto rounded-lg border border-border">
+                  )
+                })}
+              </div>
+            ) : (
+              /* Standard Table View */
+              <Card className="bg-card border-border">
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-secondary/70">
                           {tableViewData.fields.map((f) => (
-                            <th key={f} className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap border-b border-border">{f}</th>
+                            <th key={f} className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap border-b border-border">{f}</th>
                           ))}
                         </tr>
                       </thead>
@@ -189,8 +222,8 @@ export default function DatabasesPage() {
                         {tableViewData.rows.map((row, i) => (
                           <tr key={i} className="hover:bg-secondary/30 transition-colors border-b border-border/50 last:border-0">
                             {tableViewData.fields.map((f) => (
-                              <td key={f} className="px-3 py-2 text-foreground whitespace-nowrap max-w-[300px] truncate font-mono text-xs">
-                                {row[f] === null ? <span className="text-muted-foreground/50 italic">null</span> : String(row[f])}
+                              <td key={f} className="px-3 py-2 text-foreground whitespace-nowrap max-w-[250px] truncate font-mono text-xs">
+                                {row[f] === null ? <span className="text-muted-foreground/50 italic">null</span> : String(row[f]).length > 80 ? String(row[f]).slice(0, 80) + "..." : String(row[f])}
                               </td>
                             ))}
                           </tr>
@@ -198,9 +231,9 @@ export default function DatabasesPage() {
                       </tbody>
                     </table>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         ) : null}
       </div>
