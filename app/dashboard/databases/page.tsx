@@ -66,25 +66,43 @@ export default function DatabasesPage() {
   const handleDelete = async () => {
     if (!deleteModal.db) return
     setIsDeleting(true)
-    try { await fetch("/api/databases", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: deleteModal.db.name }) }); await fetchDatabases() } catch {}
+    try {
+      console.log("[v0] Deleting database:", deleteModal.db.name)
+      const res = await fetch("/api/databases", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: deleteModal.db.name }) })
+      const result = await res.json()
+      console.log("[v0] Delete result:", result)
+      if (result.error) { setError(result.error) }
+      await fetchDatabases()
+    } catch (err: any) {
+      console.log("[v0] Delete error:", err.message)
+      setError(err.message)
+    }
     setIsDeleting(false); setDeleteModal({ isOpen: false, db: null })
   }
 
   const toggleExpand = async (name: string) => {
+    console.log("[v0] Toggle expand:", name, "current:", expandedDb)
     if (expandedDb === name) { setExpandedDb(null); return }
     setExpandedDb(name)
-    if (!tablesData[name]) {
-      setLoadingTables(name)
-      try { const res = await fetch(`/api/databases/${name}`); const data = await res.json(); if (data.tables) setTablesData((prev) => ({ ...prev, [name]: data.tables })) } catch {}
-      setLoadingTables(null)
+    setLoadingTables(name)
+    try {
+      const res = await fetch(`/api/databases/${encodeURIComponent(name)}`)
+      const data = await res.json()
+      console.log("[v0] Tables data for", name, ":", data)
+      if (data.tables) setTablesData((prev) => ({ ...prev, [name]: data.tables }))
+      else if (data.error) { console.log("[v0] Tables error:", data.error); setTablesData((prev) => ({ ...prev, [name]: [] })) }
+    } catch (err: any) {
+      console.log("[v0] Fetch tables error:", err.message)
+      setTablesData((prev) => ({ ...prev, [name]: [] }))
     }
+    setLoadingTables(null)
   }
 
   const handleRunSQL = async () => {
     if (!sqlDb || !sqlQuery.trim()) return
     setIsRunning(true); setSqlResult(null)
     try {
-      const res = await fetch(`/api/databases/${sqlDb}/query`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sql: sqlQuery.trim() }) })
+      const res = await fetch(`/api/databases/${encodeURIComponent(sqlDb)}/query`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sql: sqlQuery.trim() }) })
       const data = await res.json()
       if (data.error) setSqlResult({ rows: [], rowCount: 0, fields: [], command: "", duration: 0, error: data.error })
       else setSqlResult(data)
@@ -95,7 +113,12 @@ export default function DatabasesPage() {
 
   const handleViewTable = async (db: string, table: string) => {
     setViewingTable({ db, table }); setLoadingTableView(true); setTableViewData(null)
-    try { const res = await fetch(`/api/databases/${db}/tables/${table}`); const data = await res.json(); setTableViewData(data) } catch {}
+    try {
+      const res = await fetch(`/api/databases/${encodeURIComponent(db)}/tables/${encodeURIComponent(table)}`)
+      const data = await res.json()
+      console.log("[v0] Table view data:", data)
+      setTableViewData(data)
+    } catch (err: any) { console.log("[v0] View table error:", err.message) }
     setLoadingTableView(false)
   }
 
