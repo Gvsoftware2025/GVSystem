@@ -448,7 +448,7 @@ body {
 
 /* Text gradient animation */
 .text-gradient-animated {
-  @apply bg-gradient-to-r from-primary via-primary/60 to-primary;
+  background: linear-gradient(90deg, hsl(142 76% 45%), hsl(142 76% 35%), hsl(142 76% 45%));
   background-size: 200% 200%;
   animation: gradientFlow 3s ease-in-out infinite;
   -webkit-background-clip: text;
