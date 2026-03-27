@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { StatsCard } from "@/components/stats-card"
 import { RecentMessages } from "@/components/recent-messages"
 import { SiteStatus } from "@/components/site-status"
 import { Summary } from "@/components/summary"
 import { FileText, Zap, Mail, MessageSquare } from "lucide-react"
-import { createBrowserClient } from "@supabase/ssr"
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -15,26 +15,22 @@ export default function DashboardPage() {
     contacts: 0,
     feedbacks: 0,
   })
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const supabase = createClient()
 
   useEffect(() => {
     async function fetchStats() {
-      const [projectsRes, skillsRes, contactsRes, feedbacksRes] = await Promise.all([
-        supabase.from("portfolio_projects").select("id", { count: "exact", head: true }),
-        supabase.from("portfolio_skills").select("id", { count: "exact", head: true }),
-        supabase.from("portfolio_contacts").select("id", { count: "exact", head: true }),
-        supabase.from("portfolio_feedbacks").select("id", { count: "exact", head: true }),
+      const [projects, skills, contacts, feedbacks] = await Promise.all([
+        supabase.from("portfolio_projects").select("*", { count: "exact", head: true }),
+        supabase.from("portfolio_skills").select("*", { count: "exact", head: true }),
+        supabase.from("portfolio_contacts").select("*", { count: "exact", head: true }),
+        supabase.from("portfolio_feedbacks").select("*", { count: "exact", head: true }),
       ])
 
       setStats({
-        projects: projectsRes.count || 0,
-        skills: skillsRes.count || 0,
-        contacts: contactsRes.count || 0,
-        feedbacks: feedbacksRes.count || 0,
+        projects: projects.count || 0,
+        skills: skills.count || 0,
+        contacts: contacts.count || 0,
+        feedbacks: feedbacks.count || 0,
       })
     }
 

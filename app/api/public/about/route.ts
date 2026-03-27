@@ -1,27 +1,23 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/client";
+import { NextResponse } from "next/server";
 
 export async function GET() {
+  const supabase = createClient();
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json({ error: "Supabase credentials not configured" }, { status: 500 })
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
     const { data, error } = await supabase
       .from("portfolio_about")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(1)
-      .single()
+      .single();
 
     if (error) {
-      console.error("[v0] Error fetching about:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error("[v0] Error fetching about:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: "About info not found" }, { status: 404 });
     }
 
     // Retorna os dados públicos sem autenticação
@@ -39,11 +35,11 @@ export async function GET() {
           "Access-Control-Allow-Methods": "GET",
           "Access-Control-Allow-Headers": "Content-Type",
         },
-      },
-    )
-  } catch (error) {
-    console.error("[v0] Unexpected error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+      }
+    );
+  } catch (error: any) {
+    console.error("[v0] Unexpected error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -57,6 +53,6 @@ export async function OPTIONS() {
         "Access-Control-Allow-Methods": "GET",
         "Access-Control-Allow-Headers": "Content-Type",
       },
-    },
-  )
+    }
+  );
 }

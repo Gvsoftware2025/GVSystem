@@ -36,8 +36,6 @@ export default function ContatosPage() {
 
   useEffect(() => {
     fetchContatos()
-    const interval = setInterval(fetchContatos, 5000)
-    return () => clearInterval(interval)
   }, [])
 
   const handleMarkAsRead = async (id: string) => {

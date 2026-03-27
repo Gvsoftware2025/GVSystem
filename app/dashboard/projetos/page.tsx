@@ -1,7 +1,7 @@
 "use client"
 
-import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -79,7 +79,9 @@ export default function ProjectsPage() {
       .channel("portfolio_projects-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "portfolio_projects" }, fetchProjects)
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [supabase])
 
   const openModal = (project?: Project) => {
@@ -115,22 +117,17 @@ export default function ProjectsPage() {
       display_order: formData.display_order,
     }
 
-    let error
     if (editingProject) {
-      const result = await supabase.from("portfolio_projects").update(projectData).eq("id", editingProject.id)
-      error = result.error
+      const { error } = await supabase.from("portfolio_projects").update(projectData).eq("id", editingProject.id)
+      if (error) alert("Erro: " + error.message)
     } else {
-      const result = await supabase.from("portfolio_projects").insert(projectData)
-      error = result.error
+      const { error } = await supabase.from("portfolio_projects").insert(projectData)
+      if (error) alert("Erro: " + error.message)
     }
 
-    if (error) {
-      alert(`Erro ao salvar: ${error.message}`)
-    } else {
-      await fetchProjects()
-      setIsModalOpen(false)
-    }
     setIsSaving(false)
+    setIsModalOpen(false)
+    fetchProjects()
   }
 
   const openDeleteModal = (project: Project) => {
@@ -142,8 +139,8 @@ export default function ProjectsPage() {
     if (!projectToDelete) return
     setIsDeleting(true)
     const { error } = await supabase.from("portfolio_projects").delete().eq("id", projectToDelete.id)
-    if (error) alert(`Erro ao excluir: ${error.message}`)
-    else await fetchProjects()
+    if (error) alert("Erro: " + error.message)
+    else fetchProjects()
     setIsDeleting(false)
     setDeleteModalOpen(false)
     setProjectToDelete(null)
@@ -263,43 +260,49 @@ export default function ProjectsPage() {
                   <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="h-8 w-8"><X className="w-4 h-4" /></Button>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-4 max-h-[70vh] overflow-y-auto">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Titulo</Label>
-                    <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="bg-secondary border-border" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Título</Label>
+                      <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Nome do projeto" className="bg-secondary border-border" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Ordem de Exibição</Label>
+                      <Input type="number" value={formData.display_order} onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })} className="bg-secondary border-border" />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Descricao</Label>
-                    <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="bg-secondary border-border min-h-[100px]" />
+                    <Label className="text-xs text-muted-foreground">Descrição</Label>
+                    <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Breve descrição do projeto" className="bg-secondary border-border min-h-[80px]" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">URL da Imagem</Label>
-                    <Input value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} className="bg-secondary border-border" />
+                    <Input value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} placeholder="https://..." className="bg-secondary border-border" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">URL do Projeto</Label>
-                      <Input value={formData.project_url} onChange={(e) => setFormData({ ...formData, project_url: e.target.value })} className="bg-secondary border-border" />
+                      <Input value={formData.project_url} onChange={(e) => setFormData({ ...formData, project_url: e.target.value })} placeholder="https://..." className="bg-secondary border-border" />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">URL do GitHub</Label>
-                      <Input value={formData.github_url} onChange={(e) => setFormData({ ...formData, github_url: e.target.value })} className="bg-secondary border-border" />
+                      <Input value={formData.github_url} onChange={(e) => setFormData({ ...formData, github_url: e.target.value })} placeholder="https://github.com/..." className="bg-secondary border-border" />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Tecnologias (separadas por virgula)</Label>
-                    <Input value={formData.technologies} onChange={(e) => setFormData({ ...formData, technologies: e.target.value })} placeholder="React, Node.js, TypeScript" className="bg-secondary border-border" />
+                    <Label className="text-xs text-muted-foreground">Tecnologias (separadas por vírgula)</Label>
+                    <Input value={formData.technologies} onChange={(e) => setFormData({ ...formData, technologies: e.target.value })} placeholder="React, Next.js, Tailwind" className="bg-secondary border-border" />
                   </div>
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <Label className="text-sm text-foreground">Projeto em destaque</Label>
-                      <p className="text-[11px] text-muted-foreground">Aparece com destaque na home</p>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Projeto em Destaque</Label>
+                      <p className="text-xs text-muted-foreground">Aparecerá com prioridade no portfolio</p>
                     </div>
                     <Switch checked={formData.is_featured} onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })} />
                   </div>
                   <div className="flex gap-3 pt-2">
                     <Button variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1">Cancelar</Button>
                     <Button onClick={handleSave} disabled={isSaving || !formData.title} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar Projeto"}
                     </Button>
                   </div>
                 </CardContent>
@@ -314,16 +317,16 @@ export default function ProjectsPage() {
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-lg bg-destructive/10"><AlertTriangle className="w-5 h-5 text-destructive" /></div>
-              <AlertDialogTitle className="text-foreground">Excluir Projeto</AlertDialogTitle>
+              <AlertDialogTitle className="text-foreground">Excluir projeto</AlertDialogTitle>
             </div>
             <AlertDialogDescription className="text-muted-foreground">
-              Tem certeza que deseja excluir <span className="text-foreground font-medium">"{projectToDelete?.title}"</span>? Esta acao nao pode ser desfeita.
+              Tem certeza que deseja excluir <span className="font-medium text-foreground">{projectToDelete?.title}</span>? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel className="bg-secondary border-border text-foreground hover:bg-muted">Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-              {isDeleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Excluindo...</> : <><Trash2 className="w-4 h-4 mr-2" />Excluir</>}
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
