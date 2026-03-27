@@ -443,7 +443,12 @@ body {
 
 /* Smooth transitions for cards */
 .card-hover-lift {
-  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  transition: all 0.3s ease;
+}
+
+.card-hover-lift:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-4px);
 }
 
 /* Text gradient animation */
