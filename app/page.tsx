@@ -36,217 +36,277 @@ export default function Home() {
   }, [router])
 
   const statusText =
-    progress < 20
-      ? "Inicializando..."
-      : progress < 40
-        ? "Autenticando..."
-        : progress < 60
-          ? "Carregando dados..."
-          : progress < 80
-            ? "Preparando dashboard..."
-            : progress < 100
-              ? "Finalizando..."
-              : "Bem-vindo"
+    progress < 20 ? "Inicializando..." :
+    progress < 40 ? "Autenticando..." :
+    progress < 60 ? "Carregando dados..." :
+    progress < 80 ? "Preparando dashboard..." :
+    progress < 100 ? "Finalizando..." : "Bem-vindo"
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-background via-background to-background/80 flex items-center justify-center overflow-hidden">
-      {/* Animated grid background */}
-      <div className="absolute inset-0 opacity-[0.03]">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path
-                d="M 40 0 L 0 0 0 40"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="0.5"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div>
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'linear-gradient(135deg, #030303 0%, #0a0a0a 50%, #030303 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      {/* Orb 1 - Green */}
+      <div style={{
+        position: 'absolute',
+        top: '-10%',
+        left: '-5%',
+        width: '500px',
+        height: '500px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, transparent 70%)',
+        filter: 'blur(80px)',
+        animation: 'floatOrb1 8s ease-in-out infinite',
+      }} />
+      
+      {/* Orb 2 - Cyan */}
+      <div style={{
+        position: 'absolute',
+        bottom: '-15%',
+        right: '-10%',
+        width: '600px',
+        height: '600px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%)',
+        filter: 'blur(100px)',
+        animation: 'floatOrb2 10s ease-in-out infinite',
+      }} />
+      
+      {/* Orb 3 - Purple */}
+      <div style={{
+        position: 'absolute',
+        top: '30%',
+        right: '20%',
+        width: '400px',
+        height: '400px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, transparent 70%)',
+        filter: 'blur(90px)',
+        animation: 'floatOrb3 12s ease-in-out infinite',
+      }} />
 
-      {/* Animated gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className="absolute -top-40 -left-40 w-80 h-80 rounded-full blur-3xl opacity-20"
-          style={{
-            background: "radial-gradient(circle, hsl(142 76% 45%) 0%, transparent 70%)",
-            animation: "float 8s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full blur-3xl opacity-15"
-          style={{
-            background: "radial-gradient(circle, hsl(199 89% 48%) 0%, transparent 70%)",
-            animation: "float 10s ease-in-out infinite reverse",
-          }}
-        />
-        <div
-          className="absolute top-1/3 left-1/2 w-72 h-72 rounded-full blur-3xl opacity-10"
-          style={{
-            background: "radial-gradient(circle, hsl(280 65% 60%) 0%, transparent 70%)",
-            animation: "float 12s ease-in-out infinite",
-          }}
-        />
-      </div>
+      {/* Grid */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+        backgroundSize: '50px 50px',
+        opacity: mounted ? 1 : 0,
+        transition: 'opacity 1s ease',
+      }} />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-12 px-4">
-        {/* Animated logo */}
-        <div
-          className="relative"
-          style={{
-            opacity: mounted ? 1 : 0,
-            transform: mounted ? "translateY(0) scale(1)" : "translateY(40px) scale(0.8)",
-            transition: "all 1s cubic-bezier(0.34, 1.56, 0.64, 1)",
-          }}
-        >
-          {/* Rotating circles background */}
-          <div
-            className="absolute -inset-8 rounded-full"
-            style={{
-              background: "conic-gradient(from 0deg, hsl(142 76% 45%), hsl(199 89% 48%), hsl(280 65% 60%), hsl(142 76% 45%))",
-              opacity: progress < 100 ? 0.3 : 0,
-              animation: "spin 4s linear infinite",
-              transition: "opacity 0.5s ease",
-            }}
-          />
-          <div className="absolute -inset-6 rounded-full bg-background" />
-
-          {/* Glow effect */}
-          <div className="absolute -inset-3 rounded-full bg-primary/15 blur-2xl" />
-
-          {/* Main logo */}
-          <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-2xl shadow-primary/40 overflow-hidden">
-            {/* Shine effect */}
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
-              style={{
-                animation: "shimmer-fast 3s infinite",
-              }}
-            />
-            <span className="text-4xl font-bold text-primary-foreground tracking-tighter select-none relative z-10">GV</span>
+      <div style={{
+        position: 'relative',
+        zIndex: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '48px',
+        padding: '24px',
+        opacity: mounted ? 1 : 0,
+        transform: mounted ? 'translateY(0)' : 'translateY(30px)',
+        transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      }}>
+        
+        {/* Logo */}
+        <div style={{ position: 'relative' }}>
+          {/* Rotating Ring */}
+          <div style={{
+            position: 'absolute',
+            inset: '-16px',
+            borderRadius: '32px',
+            background: 'conic-gradient(from 0deg, #22c55e, #06b6d4, #a855f7, #22c55e)',
+            opacity: progress < 100 ? 0.6 : 0,
+            animation: 'spinSlow 4s linear infinite',
+            transition: 'opacity 0.5s ease',
+          }} />
+          <div style={{
+            position: 'absolute',
+            inset: '-12px',
+            borderRadius: '28px',
+            background: '#050505',
+          }} />
+          
+          {/* Glow */}
+          <div style={{
+            position: 'absolute',
+            inset: '-8px',
+            borderRadius: '24px',
+            background: 'rgba(34, 197, 94, 0.4)',
+            filter: 'blur(25px)',
+            animation: 'pulseGlow 2s ease-in-out infinite',
+          }} />
+          
+          {/* Logo Box */}
+          <div style={{
+            position: 'relative',
+            width: '100px',
+            height: '100px',
+            borderRadius: '24px',
+            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 20px 60px rgba(34, 197, 94, 0.5)',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)',
+              animation: 'shine 3s infinite',
+            }} />
+            <span style={{
+              fontSize: '42px',
+              fontWeight: 800,
+              color: 'white',
+              letterSpacing: '-2px',
+              position: 'relative',
+              zIndex: 1,
+              textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+            }}>GV</span>
           </div>
         </div>
 
-        {/* Animated text */}
-        <div className="text-center">
-          <h1
-            className="text-4xl font-bold text-foreground tracking-tight"
-            style={{
-              opacity: mounted ? 1 : 0,
-              transform: mounted ? "translateY(0)" : "translateY(20px)",
-              transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s",
-              background: "linear-gradient(135deg, hsl(0 0% 95%), hsl(142 76% 45%))",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
+        {/* Text */}
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{
+            fontSize: '42px',
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #ffffff 0%, #22c55e 50%, #06b6d4 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            marginBottom: '12px',
+            letterSpacing: '-1px',
+          }}>
             GV Software
           </h1>
-          <p
-            className="mt-2 text-base text-muted-foreground tracking-wide"
-            style={{
-              opacity: mounted ? 1 : 0,
-              transform: mounted ? "translateY(0)" : "translateY(20px)",
-              transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s",
-            }}
-          >
-            Painel Administrativo Moderno
+          <p style={{
+            fontSize: '14px',
+            color: 'rgba(255,255,255,0.5)',
+            letterSpacing: '3px',
+            textTransform: 'uppercase',
+          }}>
+            Painel Administrativo
           </p>
         </div>
 
-        {/* Advanced progress section */}
-        <div
-          className="w-72"
-          style={{
-            opacity: mounted ? 1 : 0,
-            transform: mounted ? "translateY(0)" : "translateY(20px)",
-            transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s",
-          }}
-        >
-          {/* Animated progress container */}
-          <div className="relative h-2 bg-secondary/30 rounded-full overflow-hidden border border-primary/10 backdrop-blur-sm">
-            {/* Gradient progress bar */}
-            <div
-              className="h-full rounded-full transition-all duration-200 ease-out"
-              style={{
-                width: `${progress}%`,
-                background: `linear-gradient(90deg, hsl(142 76% 45%), hsl(199 89% 48%), hsl(142 76% 45%))`,
-                boxShadow: `0 0 20px hsla(142, 76%, 45%, ${progress / 100})`,
-              }}
-            />
-            {/* Animated shimmer on progress */}
-            <div
-              className="absolute inset-0 opacity-50"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
-                animation: "shimmer-fast 2s infinite",
-                transform: `translateX(${progress * 3}%)`,
-              }}
-            />
+        {/* Progress */}
+        <div style={{ width: '320px' }}>
+          <div style={{
+            height: '8px',
+            background: 'rgba(255,255,255,0.08)',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            position: 'relative',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${progress}%`,
+              background: 'linear-gradient(90deg, #22c55e, #06b6d4, #a855f7)',
+              borderRadius: '10px',
+              transition: 'width 0.15s ease-out',
+              boxShadow: `0 0 30px rgba(34, 197, 94, ${progress / 100 * 0.8})`,
+              position: 'relative',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+                animation: 'shimmerMove 1.5s infinite',
+              }} />
+            </div>
           </div>
 
-          {/* Status text and percentage */}
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-sm text-muted-foreground font-medium">{statusText}</p>
-            <p className="text-sm font-mono text-primary font-semibold tabular-nums">
-              {Math.round(progress)}%
-            </p>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: '16px',
+            alignItems: 'center',
+          }}>
+            <span style={{
+              fontSize: '14px',
+              color: 'rgba(255,255,255,0.6)',
+              fontWeight: 500,
+            }}>{statusText}</span>
+            <span style={{
+              fontSize: '16px',
+              color: '#22c55e',
+              fontWeight: 700,
+              fontFamily: 'monospace',
+            }}>{Math.round(progress)}%</span>
           </div>
 
-          {/* Loading dots animation */}
-          <div className="flex items-center justify-center gap-2 mt-6">
+          {/* Loading Dots */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '10px',
+            marginTop: '32px',
+          }}>
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="w-2 h-2 rounded-full bg-primary/60"
                 style={{
-                  animation: "pulse 1.5s ease-in-out infinite",
-                  animationDelay: `${i * 0.3}s`,
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #22c55e, #06b6d4)',
+                  animation: `bounce 1.4s ease-in-out ${i * 0.2}s infinite`,
+                  boxShadow: '0 0 10px rgba(34, 197, 94, 0.5)',
                 }}
               />
             ))}
           </div>
         </div>
-
-        {/* Bottom hint text */}
-        <p
-          className="text-xs text-muted-foreground/50 mt-4"
-          style={{
-            opacity: mounted ? 1 : 0,
-            transition: "opacity 1s ease-out 1s",
-          }}
-        >
-          Preparando seu ambiente...
-        </p>
       </div>
 
       <style>{`
-        @keyframes spin {
+        @keyframes floatOrb1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(40px, -50px) scale(1.1); }
+          66% { transform: translate(-30px, 30px) scale(0.95); }
+        }
+        @keyframes floatOrb2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-50px, 40px) scale(1.05); }
+          66% { transform: translate(35px, -45px) scale(0.9); }
+        }
+        @keyframes floatOrb3 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-40px, -40px) scale(1.15); }
+        }
+        @keyframes spinSlow {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) translateX(0px); }
-          25% { transform: translateY(-20px) translateX(10px); }
-          50% { transform: translateY(-40px) translateX(0px); }
-          75% { transform: translateY(-20px) translateX(-10px); }
+        @keyframes pulseGlow {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.1); }
         }
-
-        @keyframes shimmer-fast {
+        @keyframes shine {
+          0% { transform: translateX(-100%); }
+          50%, 100% { transform: translateX(100%); }
+        }
+        @keyframes shimmerMove {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
         }
-
-        @keyframes pulse {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
+        @keyframes bounce {
+          0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+          40% { transform: scale(1.3); opacity: 1; }
         }
       `}</style>
     </div>
