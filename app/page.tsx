@@ -3,31 +3,16 @@
 import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 
-function FloatingParticle({ delay, size, x, duration }: { delay: number; size: number; x: number; duration: number }) {
-  return (
-    <div
-      className="absolute rounded-full"
-      style={{
-        width: size,
-        height: size,
-        left: `${x}%`,
-        bottom: "-10%",
-        background: `radial-gradient(circle, hsl(262 83% 58% / 0.6), transparent)`,
-        animation: `floatUp ${duration}s ease-out ${delay}s infinite`,
-        opacity: 0,
-      }}
-    />
-  )
-}
-
 export default function Home() {
   const router = useRouter()
   const [progress, setProgress] = useState(0)
-  const [phase, setPhase] = useState(0) // 0: loading, 1: complete, 2: exiting
+  const [phase, setPhase] = useState(0)
   const [mounted, setMounted] = useState(false)
+  const [textIndex, setTextIndex] = useState(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const orbsRef = useRef<{ x: number; y: number; vx: number; vy: number; size: number; hue: number }[]>([])
 
-  // Animated grid background
+  // Advanced particle system with orbs
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -41,48 +26,99 @@ export default function Home() {
     resize()
     window.addEventListener("resize", resize)
 
+    // Initialize orbs
+    if (orbsRef.current.length === 0) {
+      for (let i = 0; i < 5; i++) {
+        orbsRef.current.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          size: 200 + Math.random() * 150,
+          hue: 262 + (Math.random() - 0.5) * 20,
+        })
+      }
+    }
+
+    // Stars
+    const stars: { x: number; y: number; size: number; speed: number }[] = []
+    for (let i = 0; i < 100; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 1.5 + 0.5,
+        speed: Math.random() * 0.5 + 0.1,
+      })
+    }
+
     let frame = 0
     const animate = () => {
       frame++
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = "rgba(9, 9, 11, 0.15)"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      // Draw subtle grid lines that pulse
-      const gridSize = 60
-      const pulse = Math.sin(frame * 0.02) * 0.3 + 0.7
+      // Draw floating orbs with blur effect
+      orbsRef.current.forEach((orb) => {
+        orb.x += orb.vx
+        orb.y += orb.vy
 
-      ctx.strokeStyle = `rgba(139, 92, 246, ${0.03 * pulse})`
-      ctx.lineWidth = 0.5
+        if (orb.x < -orb.size) orb.x = canvas.width + orb.size
+        if (orb.x > canvas.width + orb.size) orb.x = -orb.size
+        if (orb.y < -orb.size) orb.y = canvas.height + orb.size
+        if (orb.y > canvas.height + orb.size) orb.y = -orb.size
 
-      for (let x = 0; x < canvas.width; x += gridSize) {
+        const gradient = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.size)
+        gradient.addColorStop(0, `hsla(${orb.hue}, 83%, 58%, 0.15)`)
+        gradient.addColorStop(0.5, `hsla(${orb.hue}, 83%, 58%, 0.05)`)
+        gradient.addColorStop(1, "transparent")
+        ctx.fillStyle = gradient
         ctx.beginPath()
-        ctx.moveTo(x, 0)
-        ctx.lineTo(x, canvas.height)
-        ctx.stroke()
-      }
-      for (let y = 0; y < canvas.height; y += gridSize) {
-        ctx.beginPath()
-        ctx.moveTo(0, y)
-        ctx.lineTo(canvas.width, y)
-        ctx.stroke()
-      }
+        ctx.arc(orb.x, orb.y, orb.size, 0, Math.PI * 2)
+        ctx.fill()
+      })
 
-      // Draw a few glowing intersection points
+      // Draw twinkling stars
+      stars.forEach((star) => {
+        const twinkle = Math.sin(frame * star.speed * 0.1) * 0.5 + 0.5
+        ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.6})`
+        ctx.beginPath()
+        ctx.arc(star.x, star.y, star.size * twinkle, 0, Math.PI * 2)
+        ctx.fill()
+      })
+
+      // Central glow pulse
       const centerX = canvas.width / 2
       const centerY = canvas.height / 2
-      const radius = 200 + Math.sin(frame * 0.015) * 50
+      const pulseSize = 250 + Math.sin(frame * 0.02) * 50
+      const centerGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, pulseSize)
+      centerGrad.addColorStop(0, `hsla(262, 83%, 58%, ${0.1 + Math.sin(frame * 0.02) * 0.05})`)
+      centerGrad.addColorStop(1, "transparent")
+      ctx.fillStyle = centerGrad
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, pulseSize, 0, Math.PI * 2)
+      ctx.fill()
 
-      for (let x = 0; x < canvas.width; x += gridSize) {
-        for (let y = 0; y < canvas.height; y += gridSize) {
-          const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2)
-          if (dist < radius) {
-            const intensity = (1 - dist / radius) * 0.4 * pulse
-            ctx.beginPath()
-            ctx.arc(x, y, 1.5, 0, Math.PI * 2)
-            ctx.fillStyle = `rgba(139, 92, 246, ${intensity})`
-            ctx.fill()
-          }
-        }
+      // Rotating ring
+      ctx.save()
+      ctx.translate(centerX, centerY)
+      ctx.rotate(frame * 0.005)
+      ctx.strokeStyle = `hsla(262, 83%, 58%, ${0.1 + Math.sin(frame * 0.03) * 0.05})`
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(0, 0, 180, 0, Math.PI * 2)
+      ctx.stroke()
+      
+      // Dots on ring
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2 + frame * 0.01
+        const dotX = Math.cos(angle) * 180
+        const dotY = Math.sin(angle) * 180
+        ctx.fillStyle = `hsla(262, 83%, 58%, ${0.4 + Math.sin(frame * 0.05 + i) * 0.3})`
+        ctx.beginPath()
+        ctx.arc(dotX, dotY, 3, 0, Math.PI * 2)
+        ctx.fill()
       }
+      ctx.restore()
 
       requestAnimationFrame(animate)
     }
@@ -98,15 +134,15 @@ export default function Home() {
   useEffect(() => {
     setMounted(true)
 
-    const duration = 2400
-    const steps = 80
+    const duration = 3000
+    const steps = 100
     const increment = 100 / steps
     const intervalTime = duration / steps
 
     let current = 0
     const interval = setInterval(() => {
-      current += increment
-      const eased = Math.min(100, current + Math.sin((current / 100) * Math.PI) * 10)
+      current += increment + Math.random() * 0.5
+      const eased = Math.min(100, current)
       setProgress(eased)
       if (current >= 100) {
         clearInterval(interval)
@@ -114,219 +150,328 @@ export default function Home() {
         setPhase(1)
         setTimeout(() => {
           setPhase(2)
-          setTimeout(() => router.replace("/dashboard"), 400)
-        }, 600)
+          setTimeout(() => router.replace("/dashboard"), 600)
+        }, 800)
       }
     }, intervalTime)
 
     return () => clearInterval(interval)
   }, [router])
 
-  const statusItems = [
-    { threshold: 0, text: "Inicializando nucleo..." },
-    { threshold: 20, text: "Conectando ao servidor..." },
-    { threshold: 40, text: "Autenticando credenciais..." },
-    { threshold: 60, text: "Carregando modulos..." },
-    { threshold: 80, text: "Preparando interface..." },
-    { threshold: 95, text: "Sistema pronto" },
-  ]
+  // Text animation
+  useEffect(() => {
+    const texts = ["Inicializando sistema...", "Conectando ao servidor...", "Carregando modulos...", "Preparando interface...", "Quase pronto..."]
+    const interval = setInterval(() => {
+      setTextIndex((prev) => (prev + 1) % texts.length)
+    }, 600)
+    return () => clearInterval(interval)
+  }, [])
 
-  const currentStatus = [...statusItems].reverse().find(s => progress >= s.threshold)?.text || ""
+  const loadingTexts = ["Inicializando sistema...", "Conectando ao servidor...", "Carregando modulos...", "Preparando interface...", "Quase pronto..."]
 
   return (
     <div
-      className="fixed inset-0 bg-background flex items-center justify-center overflow-hidden"
+      className="fixed inset-0 bg-[#09090b] flex items-center justify-center overflow-hidden"
       style={{
         opacity: phase === 2 ? 0 : 1,
-        transform: phase === 2 ? "scale(1.05)" : "scale(1)",
-        transition: "opacity 0.4s ease, transform 0.4s ease",
+        transform: phase === 2 ? "scale(1.1)" : "scale(1)",
+        transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
-      {/* Animated canvas grid */}
       <canvas ref={canvasRef} className="absolute inset-0" />
 
-      {/* Radial glow */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[150px]"
-        style={{
-          background: "radial-gradient(circle, hsl(262 83% 58% / 0.15), transparent 70%)",
-          animation: "pulse 4s ease-in-out infinite",
-        }}
-      />
+      {/* Noise texture overlay */}
+      <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")" }} />
 
-      {/* Floating particles */}
-      {Array.from({ length: 12 }).map((_, i) => (
-        <FloatingParticle
-          key={i}
-          delay={i * 0.4}
-          size={Math.random() * 4 + 2}
-          x={Math.random() * 100}
-          duration={4 + Math.random() * 3}
-        />
-      ))}
+      {/* Vignette */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%)" }} />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-8">
-        {/* Logo */}
+      {/* Scan lines */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)" }} />
+
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Animated rings behind logo */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          {[1, 2, 3].map((ring) => (
+            <div
+              key={ring}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border"
+              style={{
+                width: 120 + ring * 60,
+                height: 120 + ring * 60,
+                borderColor: `hsla(262, 83%, 58%, ${0.1 - ring * 0.02})`,
+                animation: `pulse-ring ${2 + ring * 0.5}s ease-in-out infinite ${ring * 0.3}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Logo container */}
         <div
-          className="relative"
+          className="relative mb-10"
           style={{
             opacity: mounted ? 1 : 0,
-            transform: mounted ? "translateY(0) scale(1)" : "translateY(30px) scale(0.8)",
-            transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
+            transform: mounted ? "translateY(0) scale(1)" : "translateY(40px) scale(0.7)",
+            transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
-          {/* Spinning border */}
+          {/* Outer glow */}
           <div
-            className="absolute -inset-[3px] rounded-2xl"
+            className="absolute -inset-8 rounded-3xl blur-3xl"
             style={{
-              background: "conic-gradient(from 0deg, hsl(262 83% 58%), transparent 30%, transparent 70%, hsl(262 83% 58%))",
-              opacity: phase === 1 ? 0 : 0.6,
-              animation: "spin 2.5s linear infinite",
-              transition: "opacity 0.5s ease",
-            }}
-          />
-          <div className="absolute -inset-[1px] rounded-2xl bg-background" />
-
-          {/* Glow effect */}
-          <div
-            className="absolute -inset-6 rounded-3xl blur-2xl"
-            style={{
-              background: "hsl(262 83% 58% / 0.2)",
-              opacity: phase === 1 ? 0.8 : 0.3,
-              transition: "opacity 0.5s ease",
+              background: phase === 1 
+                ? "linear-gradient(135deg, hsla(142, 76%, 46%, 0.4), hsla(142, 76%, 46%, 0.2))"
+                : "linear-gradient(135deg, hsla(262, 83%, 58%, 0.4), hsla(280, 70%, 50%, 0.2))",
+              transition: "all 0.8s ease",
             }}
           />
 
-          {/* Logo box */}
+          {/* Spinning outer border */}
           <div
-            className="relative w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden"
+            className="absolute -inset-1 rounded-2xl"
             style={{
               background: phase === 1
-                ? "linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 45%))"
-                : "linear-gradient(135deg, hsl(262 83% 58% / 0.9), hsl(262 83% 45% / 0.9))",
-              boxShadow: "0 8px 32px hsl(262 83% 58% / 0.3), inset 0 1px 0 hsl(262 83% 70% / 0.2)",
-              transition: "all 0.5s ease",
+                ? "conic-gradient(from 0deg, hsl(142 76% 46%), hsl(142 76% 60%), hsl(142 76% 46%))"
+                : "conic-gradient(from 0deg, hsl(262 83% 58%), hsl(280 70% 50%), hsl(320 80% 50%), hsl(262 83% 58%))",
+              animation: "spin 3s linear infinite",
+              opacity: 0.8,
+              transition: "all 0.8s ease",
+            }}
+          />
+          <div className="absolute inset-0 rounded-2xl bg-[#09090b]" />
+
+          {/* Inner card */}
+          <div
+            className="relative w-28 h-28 rounded-2xl flex items-center justify-center overflow-hidden"
+            style={{
+              background: phase === 1
+                ? "linear-gradient(135deg, hsl(142 76% 46%), hsl(142 76% 36%))"
+                : "linear-gradient(135deg, hsl(262 83% 58%), hsl(280 70% 50%))",
+              boxShadow: phase === 1
+                ? "0 20px 60px hsla(142, 76%, 46%, 0.4), inset 0 1px 0 hsla(142, 76%, 70%, 0.3)"
+                : "0 20px 60px hsla(262, 83%, 58%, 0.4), inset 0 1px 0 hsla(262, 83%, 80%, 0.3)",
+              transition: "all 0.8s ease",
             }}
           >
-            {/* Inner shine */}
+            {/* Shine effect */}
             <div
               className="absolute inset-0"
               style={{
-                background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%)",
+                background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.1) 100%)",
               }}
             />
-            <span className="relative text-3xl font-bold text-white tracking-tight select-none">GV</span>
+            
+            {/* Moving shine */}
+            <div
+              className="absolute inset-0 overflow-hidden"
+              style={{ opacity: phase === 1 ? 0 : 1, transition: "opacity 0.5s" }}
+            >
+              <div
+                className="absolute w-full h-full"
+                style={{
+                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
+                  animation: "shine 2s ease-in-out infinite",
+                }}
+              />
+            </div>
+
+            <span 
+              className="relative text-4xl font-black text-white tracking-tight select-none"
+              style={{
+                textShadow: "0 2px 10px rgba(0,0,0,0.3)",
+              }}
+            >
+              GV
+            </span>
           </div>
         </div>
 
-        {/* Title */}
-        <div className="text-center space-y-2">
+        {/* Title with typing effect */}
+        <div className="text-center space-y-3 mb-10">
           <h1
-            className="text-3xl font-bold text-foreground tracking-tight"
+            className="text-4xl font-bold tracking-tight"
             style={{
               opacity: mounted ? 1 : 0,
-              transform: mounted ? "translateY(0)" : "translateY(16px)",
-              transition: "all 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s",
+              transform: mounted ? "translateY(0)" : "translateY(20px)",
+              transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s",
+              background: phase === 1
+                ? "linear-gradient(135deg, hsl(142 76% 46%), hsl(142 76% 60%))"
+                : "linear-gradient(135deg, #fff, #a78bfa)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
             }}
           >
             GV Software
           </h1>
           <p
-            className="text-sm text-muted-foreground tracking-widest uppercase"
+            className="text-sm tracking-[0.3em] uppercase font-medium"
             style={{
-              opacity: mounted ? 0.7 : 0,
-              transform: mounted ? "translateY(0)" : "translateY(12px)",
-              transition: "all 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s",
+              opacity: mounted ? 0.6 : 0,
+              transform: mounted ? "translateY(0)" : "translateY(15px)",
+              transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s",
+              color: "hsl(262 30% 70%)",
             }}
           >
             Painel Administrativo
           </p>
         </div>
 
-        {/* Progress area */}
+        {/* Progress section */}
         <div
-          className="w-72"
+          className="w-80"
           style={{
             opacity: mounted ? 1 : 0,
-            transform: mounted ? "translateY(0)" : "translateY(12px)",
-            transition: "all 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s",
+            transform: mounted ? "translateY(0)" : "translateY(20px)",
+            transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.7s",
           }}
         >
-          {/* Progress bar */}
-          <div className="relative h-1.5 bg-secondary/60 rounded-full overflow-hidden backdrop-blur-sm">
-            {/* Shimmer */}
-            <div
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{ opacity: progress < 100 ? 1 : 0, transition: "opacity 0.5s" }}
-            >
+          {/* Progress bar container */}
+          <div className="relative">
+            {/* Background track */}
+            <div className="h-2 rounded-full bg-white/5 overflow-hidden backdrop-blur-sm border border-white/5">
+              {/* Animated background shimmer */}
               <div
                 className="absolute inset-0"
                 style={{
-                  background: "linear-gradient(90deg, transparent, hsl(262 83% 58% / 0.1), transparent)",
-                  animation: "shimmer 2s ease-in-out infinite",
+                  background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.1), transparent)",
+                  animation: "shimmer 2s linear infinite",
+                  opacity: phase === 1 ? 0 : 1,
+                  transition: "opacity 0.5s",
                 }}
               />
+              
+              {/* Progress fill */}
+              <div
+                className="h-full rounded-full relative overflow-hidden"
+                style={{
+                  width: `${progress}%`,
+                  background: phase === 1
+                    ? "linear-gradient(90deg, hsl(142 76% 46%), hsl(142 76% 56%))"
+                    : "linear-gradient(90deg, hsl(262 83% 58%), hsl(280 70% 50%), hsl(320 80% 50%))",
+                  backgroundSize: "200% 100%",
+                  animation: phase === 1 ? "none" : "gradient-move 2s linear infinite",
+                  boxShadow: phase === 1
+                    ? "0 0 20px hsl(142 76% 46% / 0.6), 0 0 40px hsl(142 76% 46% / 0.3)"
+                    : "0 0 20px hsl(262 83% 58% / 0.6), 0 0 40px hsl(262 83% 58% / 0.3)",
+                  transition: "width 0.1s ease-out, background 0.8s ease, box-shadow 0.8s ease",
+                }}
+              >
+                {/* Shine on progress */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",
+                    animation: "progress-shine 1s ease-in-out infinite",
+                  }}
+                />
+              </div>
             </div>
-            {/* Fill */}
+
+            {/* Percentage indicator */}
             <div
-              className="absolute inset-y-0 left-0 rounded-full"
-              style={{
-                width: `${progress}%`,
-                background: phase === 1
-                  ? "linear-gradient(90deg, hsl(142 76% 46%), hsl(142 76% 56%))"
-                  : "linear-gradient(90deg, hsl(262 83% 58%), hsl(262 83% 68%))",
-                boxShadow: phase === 1
-                  ? "0 0 12px hsl(142 76% 46% / 0.5)"
-                  : "0 0 12px hsl(262 83% 58% / 0.4)",
-                transition: "width 0.15s ease-out, background 0.5s ease, box-shadow 0.5s ease",
-              }}
-            />
+              className="absolute -top-7 transition-all duration-100 ease-out"
+              style={{ left: `${Math.min(progress, 95)}%` }}
+            >
+              <span
+                className="text-xs font-mono font-bold px-2 py-1 rounded-md"
+                style={{
+                  background: phase === 1 ? "hsl(142 76% 46%)" : "hsl(262 83% 58%)",
+                  color: "white",
+                  boxShadow: phase === 1
+                    ? "0 4px 12px hsl(142 76% 46% / 0.4)"
+                    : "0 4px 12px hsl(262 83% 58% / 0.4)",
+                  transition: "all 0.5s ease",
+                }}
+              >
+                {Math.round(progress)}%
+              </span>
+            </div>
           </div>
 
-          {/* Status line */}
-          <div className="flex items-center justify-between mt-3">
-            <p className="text-[11px] text-muted-foreground font-mono">
-              {phase === 1 ? (
-                <span className="text-emerald-400">Sistema carregado</span>
-              ) : (
-                currentStatus
-              )}
-            </p>
-            <p className="text-[11px] text-muted-foreground font-mono tabular-nums">
-              {Math.round(progress)}%
-            </p>
+          {/* Status text with animation */}
+          <div className="mt-6 h-5 flex items-center justify-center">
+            {phase === 1 ? (
+              <div className="flex items-center gap-2 text-emerald-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm font-medium">Sistema pronto</span>
+              </div>
+            ) : (
+              <p
+                className="text-sm text-white/50 font-mono"
+                style={{
+                  animation: "fade-text 0.3s ease-in-out",
+                }}
+                key={textIndex}
+              >
+                {loadingTexts[textIndex]}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Bottom decorative line */}
+        {/* Bottom decorative elements */}
         <div
-          className="flex items-center gap-2 mt-2"
+          className="mt-12 flex items-center gap-4"
           style={{
-            opacity: mounted ? 0.4 : 0,
-            transition: "opacity 1s ease 0.8s",
+            opacity: mounted ? 0.3 : 0,
+            transition: "opacity 1s ease 1s",
           }}
         >
-          <div className="w-8 h-px bg-border" />
-          <span className="text-[9px] text-muted-foreground font-mono uppercase tracking-[0.2em]">v2.0</span>
-          <div className="w-8 h-px bg-border" />
+          <div className="flex gap-1">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="w-1.5 h-1.5 rounded-full bg-violet-500"
+                style={{
+                  animation: `bounce-dot 1s ease-in-out ${i * 0.15}s infinite`,
+                  opacity: phase === 1 ? 0 : 1,
+                  transition: "opacity 0.5s",
+                }}
+              />
+            ))}
+          </div>
+          <div className="w-px h-4 bg-white/10" />
+          <span className="text-[10px] text-white/30 font-mono tracking-widest">v2.0</span>
+          <div className="w-px h-4 bg-white/10" />
+          <span className="text-[10px] text-white/30 font-mono">GV SOFTWARE</span>
         </div>
       </div>
 
       <style jsx>{`
-        @keyframes floatUp {
-          0% { opacity: 0; transform: translateY(0); }
-          10% { opacity: 0.6; }
-          90% { opacity: 0; }
-          100% { opacity: 0; transform: translateY(-100vh); }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
         @keyframes shimmer {
-          0%, 100% { transform: translateX(-100%); }
-          50% { transform: translateX(100%); }
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
-        @keyframes pulse {
-          0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
-          50% { opacity: 0.25; transform: translate(-50%, -50%) scale(1.1); }
+        @keyframes shine {
+          0% { transform: translateX(-100%) skewX(-20deg); }
+          100% { transform: translateX(200%) skewX(-20deg); }
+        }
+        @keyframes gradient-move {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+        @keyframes progress-shine {
+          0%, 100% { opacity: 0; transform: translateX(-100%); }
+          50% { opacity: 1; transform: translateX(100%); }
+        }
+        @keyframes pulse-ring {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+          50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.1; }
+        }
+        @keyframes bounce-dot {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        @keyframes fade-text {
+          0% { opacity: 0; transform: translateY(5px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
