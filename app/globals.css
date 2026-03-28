@@ -115,18 +115,21 @@
   --sidebar-ring: 262 83% 58%;
 }
 
-/* Base styles without @layer to avoid v4 conflicts */
+/* Base styles */
 * {
-  border-color: hsl(var(--border));
-  outline-color: hsla(var(--ring), 0.5);
+  @apply border-border outline-ring/50;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  @apply bg-background text-foreground;
+  font-feature-settings: "rounding" 1;
 }
 
-/* Animations */
+/* Smooth page transitions */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -139,19 +142,38 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes slideInLeft {
   from {
     opacity: 0;
     transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
   }
   to {
     opacity: 1;
@@ -171,20 +193,51 @@ body {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.15); }
-  50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.3); }
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(124, 58, 237, 0.3);
+  }
 }
 
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Animation utilities */
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out;
 }
@@ -195,6 +248,10 @@ body {
 
 .animate-slide-in-left {
   animation: slideInLeft 0.4s ease-out backwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out backwards;
 }
 
 .animate-scale-in {
@@ -219,23 +276,130 @@ body {
   animation: shimmer 2s linear infinite;
 }
 
-.stagger-1 { animation-delay: 50ms; }
-.stagger-2 { animation-delay: 100ms; }
-.stagger-3 { animation-delay: 150ms; }
-.stagger-4 { animation-delay: 200ms; }
-.stagger-5 { animation-delay: 250ms; }
-.stagger-6 { animation-delay: 300ms; }
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Stagger animations */
+.stagger-1 {
+  animation-delay: 50ms;
+}
+.stagger-2 {
+  animation-delay: 100ms;
+}
+.stagger-3 {
+  animation-delay: 150ms;
+}
+.stagger-4 {
+  animation-delay: 200ms;
+}
+.stagger-5 {
+  animation-delay: 250ms;
+}
+.stagger-6 {
+  animation-delay: 300ms;
+}
 
 /* Glass card effect */
 .glass-card {
-  background: linear-gradient(135deg, hsla(230, 18%, 12%, 0.8), hsla(230, 18%, 8%, 0.6));
+  background: linear-gradient(135deg, hsl(230 18% 12% / 0.8), hsl(230 18% 8% / 0.6));
   backdrop-filter: blur(12px);
-  border: 1px solid hsl(var(--border));
+  border: 1px solid hsl(230 14% 18%);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  border-color: hsla(262, 83%, 58%, 0.3);
-  box-shadow: 0 8px 32px hsla(262, 83%, 58%, 0.08);
+  border-color: hsl(262 83% 58% / 0.3);
+  box-shadow: 0 8px 32px hsl(262 83% 58% / 0.08);
   transform: translateY(-2px);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(262 83% 58%), hsl(220 14% 90%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, hsl(230 14% 16%), hsl(230 14% 20%), hsl(230 14% 16%));
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Selection styling */
+::selection {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* Page transition wrapper */
+.page-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Dashboard specific styles */
+.dashboard-card {
+  @apply glass-card p-6 rounded-lg;
+}
+
+.dashboard-header {
+  @apply text-3xl font-bold gradient-text mb-8;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .animate-fade-in-up {
+    animation-duration: 0.3s;
+  }
+
+  .glass-card {
+    backdrop-filter: blur(8px);
+  }
 }
